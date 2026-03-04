@@ -32,21 +32,21 @@ export default function Home() {
   const spawnTarget = () => {
     const newTarget = {
       id: Date.now(),
-      left: Math.random() * 560, // container width 600 - target size 40
-      top: Math.random() * 360,  // container height 400 - target size 40
+      left: Math.random() * 560, // 600px container - 40px target
+      top: Math.random() * 360,  // 400px container - 40px target
     };
     setTargets([newTarget]);
   };
 
   const handleClickTarget = (id) => {
-    setScore(score + 1);
-    setTargets([]); // remove target
-    spawnTarget();  // spawn new
+    setScore(prev => prev + 1);
+    setTargets([]);
+    spawnTarget();
   };
 
   return (
     <div style={{ textAlign: "center", fontFamily: "Arial", padding: "20px" }}>
-      <h1>Aim Trainer (Next.js)</h1>
+      <h1>Aim Trainer</h1>
       <div
         style={{
           position: "relative",
@@ -57,7 +57,7 @@ export default function Home() {
           border: "2px solid #555",
         }}
       >
-        {targets.map((t) => (
+        {targets.map(t => (
           <div
             key={t.id}
             onClick={() => handleClickTarget(t.id)}
