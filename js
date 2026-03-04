@@ -1,56 +1,89 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const gameArea = document.getElementById("gameArea");
-    const scoreDisplay = document.getElementById("score");
-    const timeDisplay = document.getElementById("time");
-    const startBtn = document.getElementById("startBtn");
+import { useState, useEffect } from "react";
 
-    let score = 0;
-    let time = 30;
-    let countdown;
+export default function Home() {
+  const [score, setScore] = useState(0);
+  const [time, setTime] = useState(30);
+  const [gameActive, setGameActive] = useState(false);
+  const [targets, setTargets] = useState([]);
 
-    function startGame() {
-        score = 0;
-        time = 30;
-        scoreDisplay.textContent = score;
-        timeDisplay.textContent = time;
-        startBtn.disabled = true;
-
-        gameArea.innerHTML = ""; // clear previous targets
-        spawnTarget();
-
-        countdown = setInterval(() => {
-            time--;
-            timeDisplay.textContent = time;
-            if (time <= 0) endGame();
-        }, 1000);
+  useEffect(() => {
+    let timer;
+    if (gameActive && time > 0) {
+      timer = setInterval(() => setTime(prev => prev - 1), 1000);
+    } else if (time === 0) {
+      endGame();
     }
+    return () => clearInterval(timer);
+  }, [gameActive, time]);
 
-    function endGame() {
-        clearInterval(countdown);
-        gameArea.innerHTML = "";
-        startBtn.disabled = false;
-        alert(`Game Over! Your score: ${score}`);
-    }
+  const startGame = () => {
+    setScore(0);
+    setTime(30);
+    setGameActive(true);
+    spawnTarget();
+  };
 
-    function spawnTarget() {
-        const target = document.createElement("div");
-        target.classList.add("target");
+  const endGame = () => {
+    setGameActive(false);
+    setTargets([]);
+    alert(`Game Over! Your score: ${score}`);
+  };
 
-        const maxX = gameArea.clientWidth - 40;
-        const maxY = gameArea.clientHeight - 40;
+  const spawnTarget = () => {
+    const newTarget = {
+      id: Date.now(),
+      left: Math.random() * 560, // container width 600 - target size 40
+      top: Math.random() * 360,  // container height 400 - target size 40
+    };
+    setTargets([newTarget]);
+  };
 
-        target.style.left = Math.random() * maxX + "px";
-        target.style.top = Math.random() * maxY + "px";
+  const handleClickTarget = (id) => {
+    setScore(score + 1);
+    setTargets([]); // remove target
+    spawnTarget();  // spawn new
+  };
 
-        target.addEventListener("click", () => {
-            score++;
-            scoreDisplay.textContent = score;
-            target.remove();
-            spawnTarget();
-        });
-
-        gameArea.appendChild(target);
-    }
-
-    startBtn.addEventListener("click", startGame);
-});
+  return (
+    <div style={{ textAlign: "center", fontFamily: "Arial", padding: "20px" }}>
+      <h1>Aim Trainer (Next.js)</h1>
+      <div
+        style={{
+          position: "relative",
+          width: "600px",
+          height: "400px",
+          margin: "0 auto",
+          background: "#222",
+          border: "2px solid #555",
+        }}
+      >
+        {targets.map((t) => (
+          <div
+            key={t.id}
+            onClick={() => handleClickTarget(t.id)}
+            style={{
+              position: "absolute",
+              left: t.left,
+              top: t.top,
+              width: "40px",
+              height: "40px",
+              background: "red",
+              borderRadius: "50%",
+              cursor: "pointer",
+            }}
+          />
+        ))}
+      </div>
+      <div style={{ margin: "10px 0", fontSize: "18px" }}>
+        <span>Score: {score}</span> | <span>Time: {time}s</span>
+      </div>
+      <button
+        onClick={startGame}
+        disabled={gameActive}
+        style={{ padding: "10px 20px", fontSize: "16px", cursor: "pointer" }}
+      >
+        Start Game
+      </button>
+    </div>
+  );
+}
